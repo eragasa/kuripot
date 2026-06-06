@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kuripot"
+version = "0.0.0"
+description = "State-archive and operator workflow framework using Petri-net semantics."
+readme = "README.md"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+
+authors = [
+    { name = "Eugene Joseph M. Ragasa", email = "eugene@projectkoios.com" }
+]
+
+dependencies = [
+    "networkx>=3.2",
+    "SNAKES>=0.9.33",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+]
+
+[project.scripts]
+kuripot = "kuripot.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "smoke_*.py"]
