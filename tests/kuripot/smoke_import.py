@@ -1,4 +1,4 @@
-# tests/smoke_import.py
+# tests/kuripot/smoke_import.py
 
 from __future__ import annotations
 
