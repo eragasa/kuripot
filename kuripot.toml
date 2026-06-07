@@ -1,0 +1,73 @@
+# kuripot.toml
+
+[project]
+name = "kuripot"
+version = "0.1.0"
+description = "State-archive and operator workflow framework based on Petri-net semantics."
+
+[core]
+default_net_type = "petri"
+default_io = "networkx"
+
+[semantics]
+place_term = "archive"
+transition_term = "operator"
+token_term = "state"
+
+[io]
+
+[io.networkx]
+enabled = true
+module = "kuripot.io.io_networkx"
+class = "NetworkXIO"
+description = "Export KuripotNet objects to NetworkX directed graphs."
+
+[io.snakes]
+enabled = true
+module = "kuripot.io.io_snakes"
+class = "SnakesIO"
+description = "Export KuripotNet objects to SNAKES PetriNet objects."
+
+[io.simpn]
+enabled = false
+module = "kuripot.io.io_simpn"
+class = "SimPNIO"
+description = "Export KuripotNet objects to SimPN simulation models."
+
+[io.pm4py]
+enabled = false
+module = "kuripot.io.io_pm4py"
+class = "PM4PyIO"
+description = "Export KuripotNet objects to PM4Py process-mining structures."
+
+[visualization]
+
+[visualization.mermaid]
+enabled = true
+module = "kuripot.viz.mermaid"
+class = "MermaidExporter"
+file_extension = ".mmd"
+
+[visualization.graphviz]
+enabled = true
+module = "kuripot.viz.graphviz"
+class = "GraphvizExporter"
+file_extension = ".dot"
+
+[execution]
+default_engine = "snakes"
+strict_enabled_check = true
+allow_unregistered_tokens = false
+allow_duplicate_archives = false
+allow_duplicate_operators = false
+
+[logging]
+enabled = true
+level = "INFO"
+event_log = "logs/kuripot-events.jsonl"
+
+[paths]
+workspace = "."
+models = "models"
+exports = "exports"
+logs = "logs"

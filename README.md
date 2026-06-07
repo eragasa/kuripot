@@ -186,14 +186,16 @@ python -m pip install -e ".[dev]"
 pytest
 ```
 
-## 
+## Planned I/O Adaparters
+`io_snakes.py` - converts `KuripotNet` $\leftrightarrow$ SNAKES
+`io_networkx.py` - converts `KuripotNet` $\leftrightarrow$ NetworkX graph
+`io_pm4py.py` - converts `KuripotNet` $\leftrightarrow$ PM4Py  net or process-mining structure
 
 ## Development status
 
 This repository is in early scaffold development.
 
 The first implementation target is a minimal backend-independent KuripotNet, followed by adapters for SNAKES and NetworkX.
-
 
 ## License
 
