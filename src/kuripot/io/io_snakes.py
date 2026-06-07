@@ -1,4 +1,4 @@
-# kuripot/io/io_snakes.py
+# src/kuripot/io/io_snakes.py
 
 from __future__ import annotations
 
@@ -8,43 +8,53 @@ from kuripot.core.net import KuripotNet
 
 
 class SnakesIO:
-    name = "snakes"
+    """
+    I/O adapter that exports a KuripotNet to a SNAKES PetriNet.
+
+    The exported Petri net is executable by SNAKES. Archives become places,
+    operators become transitions, archive tokens become initial place tokens,
+    input arcs consume tokens from places, and output arcs produce tokens into
+    places.
+    """
 
     def export(
         self,
         net: KuripotNet,
     ) -> PetriNet:
-        snakes_net = PetriNet(net.name)
+        """
+        Export a KuripotNet as a SNAKES PetriNet.
+        """
 
-        for archive_name, archive in net.archives.items():
-            tokens = [
-                Value(token)
-                for token in net.archive_tokens.get(archive_name, [])
-            ]
+        snakes_net = PetriNet(net.net_id)
+
+        for archive_id, archive in net.archives.items():
+            # Places store the actual KuripotToken objects.
+            # Arc annotations use Value(token) to match/produce those objects.
+            tokens = list(net.archive_tokens.get(archive_id, []))
 
             snakes_net.add_place(
                 Place(
-                    archive.name,
+                    archive.archive_id,
                     tokens,
                 )
             )
 
         for operator in net.operators.values():
             snakes_net.add_transition(
-                Transition(operator.name)
+                Transition(operator.operator_id)
             )
 
-        for archive_name, operator_name, token in net.input_arcs:
+        for archive_id, operator_id, token in net.input_arcs:
             snakes_net.add_input(
-                archive_name,
-                operator_name,
+                archive_id,
+                operator_id,
                 Value(token),
             )
 
-        for operator_name, archive_name, token in net.output_arcs:
+        for operator_id, archive_id, token in net.output_arcs:
             snakes_net.add_output(
-                archive_name,
-                operator_name,
+                archive_id,
+                operator_id,
                 Value(token),
             )
 
