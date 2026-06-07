@@ -1,67 +1,89 @@
-# kuripot/core/kuripot.py
+# src/kuripot/core/kuripot.py
 
 from __future__ import annotations
 
 from typing import Any
 
-from kuripot.config import load_kuripot_config, instantiate_adapter
-
 from .archive import KuripotArchive
+from .net import KuripotNet
 from .operator import KuripotOperator
 from .token import KuripotToken
-from .net import KuripotNet
 
 
 class Kuripot:
-    def __init__(self):
+    """
+    Master facade for creating Kuripot semantic objects.
+
+    Kuripot is not itself a workflow net. It creates backend-independent
+    semantic objects and owns a registry of I/O adapters.
+
+    The I/O registry is intentionally simple at this stage. Adapters can be
+    registered manually before a configuration system is introduced.
+    """
+
+    def __init__(self) -> None:
         self.io_registry: dict[str, Any] = {}
-
-    @classmethod
-    def from_toml(cls, path: str):
-        kuripot = cls()
-        config = load_kuripot_config(path)
-
-        for name, spec in config.io_adapters.items():
-            if not spec.enabled:
-                continue
-
-            adapter = instantiate_adapter(spec)
-            kuripot.register_io(name, adapter)
-
-        return kuripot
 
     def register_io(
         self,
-        name: str,
+        io_id: str,
         adapter: Any,
     ) -> None:
-        self.io_registry[name] = adapter
+        """
+        Register an I/O adapter.
+
+        Parameters
+        ----------
+        io_id:
+            Stable identifier for the adapter.
+
+        adapter:
+            Object that implements an ``export(net)`` method.
+        """
+
+        self.io_registry[io_id] = adapter
 
     def create_net(
         self,
-        name: str,
+        net_id: str,
     ) -> KuripotNet:
-        return KuripotNet(name=name)
+        """
+        Create a backend-independent workflow net.
+        """
+
+        return KuripotNet(net_id=net_id)
 
     def create_archive(
         self,
-        name: str,
+        archive_id: str,
     ) -> KuripotArchive:
-        return KuripotArchive(name=name)
+        """
+        Create an archive semantic object.
+        """
+
+        return KuripotArchive(archive_id=archive_id)
 
     def create_operator(
         self,
-        name: str,
+        operator_id: str,
     ) -> KuripotOperator:
-        return KuripotOperator(name=name)
+        """
+        Create an operator semantic object.
+        """
+
+        return KuripotOperator(operator_id=operator_id)
 
     def create_token(
         self,
-        id: str,
+        token_id: str,
         payload: Any = None,
     ) -> KuripotToken:
+        """
+        Create a token semantic object.
+        """
+
         return KuripotToken(
-            id=id,
+            token_id=token_id,
             payload=payload,
         )
 
@@ -71,9 +93,13 @@ class Kuripot:
         *,
         target: str,
     ) -> Any:
+        """
+        Export a KuripotNet using a registered I/O adapter.
+        """
+
         if target not in self.io_registry:
             raise ValueError(
-                f"Unknown IO target: {target}. "
+                f"Unknown I/O target: {target}. "
                 f"Available targets: {list(self.io_registry)}"
             )
 
