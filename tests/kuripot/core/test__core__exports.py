@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-
 def test__core_exports__semantic_classes() -> None:
     # The kuripot.core namespace should expose semantic model classes.
     from kuripot.core import (

@@ -7,7 +7,7 @@ import networkx as nx
 from kuripot.core.net import KuripotNet
 
 
-class NetworkXIO:
+class NetworkXIO():
     """
     I/O adapter that exports a KuripotNet to a NetworkX directed graph.
 

@@ -25,6 +25,15 @@ class KuripotNet:
     - input arcs connect archives to operators
     - output arcs connect operators to archives
 
+    Construction policy
+    -------------------
+    KuripotNet uses fail-early construction for the public API. Archives and
+    operators must be added to the net before arcs are created between them.
+
+    The validate() method remains useful as a consistency check for imported,
+    deserialized, or manually modified nets. Normal API usage should fail at
+    the point where an invalid arc is added.
+
     Parameters
     ----------
     net_id:
@@ -82,6 +91,18 @@ class KuripotNet:
         archive when translated into an executable Petri-net backend.
         """
 
+        # Public construction fails early: arcs may only reference registered
+        # archives and operators.
+        if not self.has_archive(archive.archive_id):
+            raise ValueError(
+                f"Input arc references unknown archive: {archive.archive_id}"
+            )
+
+        if not self.has_operator(operator.operator_id):
+            raise ValueError(
+                f"Input arc references unknown operator: {operator.operator_id}"
+            )
+
         self.input_arcs.append(
             (
                 archive.archive_id,
@@ -103,6 +124,18 @@ class KuripotNet:
         archive when translated into an executable Petri-net backend.
         """
 
+        # Public construction fails early: arcs may only reference registered
+        # archives and operators.
+        if not self.has_operator(operator.operator_id):
+            raise ValueError(
+                f"Output arc references unknown operator: {operator.operator_id}"
+            )
+
+        if not self.has_archive(archive.archive_id):
+            raise ValueError(
+                f"Output arc references unknown archive: {archive.archive_id}"
+            )
+
         self.output_arcs.append(
             (
                 operator.operator_id,
@@ -110,3 +143,53 @@ class KuripotNet:
                 token,
             )
         )
+
+    def has_archive(
+        self,
+        archive_id: str,
+    ) -> bool:
+        """
+        Return True if the net contains the requested archive.
+        """
+
+        return archive_id in self.archives
+
+    def has_operator(
+        self,
+        operator_id: str,
+    ) -> bool:
+        """
+        Return True if the net contains the requested operator.
+        """
+
+        return operator_id in self.operators
+
+    def validate(self) -> None:
+        """
+        Validate internal references in the semantic net.
+
+        This checks that every input and output arc references archives and
+        operators that have been added to the net.
+        """
+
+        for archive_id, operator_id, _token in self.input_arcs:
+            if archive_id not in self.archives:
+                raise ValueError(
+                    f"Input arc references unknown archive: {archive_id}"
+                )
+
+            if operator_id not in self.operators:
+                raise ValueError(
+                    f"Input arc references unknown operator: {operator_id}"
+                )
+
+        for operator_id, archive_id, _token in self.output_arcs:
+            if operator_id not in self.operators:
+                raise ValueError(
+                    f"Output arc references unknown operator: {operator_id}"
+                )
+
+            if archive_id not in self.archives:
+                raise ValueError(
+                    f"Output arc references unknown archive: {archive_id}"
+                )
