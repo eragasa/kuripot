@@ -1,4 +1,4 @@
-# kuripot/io/io_networkx.py
+# src/kuripot/io/io_networkx.py
 
 from __future__ import annotations
 
@@ -8,40 +8,65 @@ from kuripot.core.net import KuripotNet
 
 
 class NetworkXIO:
-    name = "networkx"
+    """
+    I/O adapter that exports a KuripotNet to a NetworkX directed graph.
+
+    The exported graph is structural, not executable.
+
+    A NetworkX DiGraph is a directed graph, not necessarily a directed
+    acyclic graph. Cycles are allowed. This matters because Kuripot workflows
+    may include feedback loops, iterative refinement, and repeated state
+    updates.
+
+    Node kinds:
+
+    - archive
+    - operator
+
+    Edge kinds:
+
+    - input
+    - output
+    """
 
     def export(
         self,
         net: KuripotNet,
     ) -> nx.DiGraph:
-        graph = nx.DiGraph(name=net.name)
+        """
+        Export a KuripotNet as a NetworkX DiGraph.
+        """
 
-        for archive in net.archives.values():
+        graph = nx.DiGraph(name=net.net_id)
+
+        for archive_id, archive in net.archives.items():
             graph.add_node(
-                archive.name,
+                archive_id,
                 kind="archive",
+                archive=archive,
             )
 
-        for operator in net.operators.values():
+        for operator_id, operator in net.operators.items():
             graph.add_node(
-                operator.name,
+                operator_id,
                 kind="operator",
+                operator=operator,
             )
 
-        for archive_name, operator_name, token in net.input_arcs:
+        for archive_id, operator_id, token in net.input_arcs:
             graph.add_edge(
-                archive_name,
-                operator_name,
-                token=token,
+                archive_id,
+                operator_id,
                 kind="input",
+                token=token,
             )
 
-        for operator_name, archive_name, token in net.output_arcs:
+        for operator_id, archive_id, token in net.output_arcs:
             graph.add_edge(
-                operator_name,
-                archive_name,
-                token=token,
+                operator_id,
+                archive_id,
                 kind="output",
+                token=token,
             )
 
         return graph
