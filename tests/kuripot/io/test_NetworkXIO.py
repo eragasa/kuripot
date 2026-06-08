@@ -1,7 +1,6 @@
 # tests/kuripot/io/test_NetworkXIO.py
-
 from __future__ import annotations
-
+import pytest
 import networkx as nx
 
 from kuripot.core.archive import KuripotArchive
@@ -10,6 +9,25 @@ from kuripot.core.operator import KuripotOperator
 from kuripot.core.token import KuripotToken
 from kuripot.io.io_networkx import NetworkXIO
 
+class ValidateSpyNet:
+    def __init__(self) -> None:
+        self.net_id = "spy_net"
+        self.archives = {}
+        self.operators = {}
+        self.input_arcs = []
+        self.output_arcs = []
+        self.validate_was_called = False
+
+    def validate(self) -> None:
+        self.validate_was_called = True
+
+def test__export__calls_validate() -> None:
+    # NetworkXIO validates the semantic net before export.
+    net = ValidateSpyNet()
+
+    NetworkXIO().export(net)
+
+    assert net.validate_was_called
 
 def test__export__returns_directed_graph() -> None:
     # NetworkXIO exports a KuripotNet to a NetworkX directed graph.
@@ -84,3 +102,27 @@ def test__export__adds_output_edges() -> None:
     assert graph.has_edge("operator_generator", "updated_state_archive")
     assert graph.edges["operator_generator", "updated_state_archive"]["kind"] == "output"
     assert graph.edges["operator_generator", "updated_state_archive"]["token"] == token
+
+def test__export__raises_for_invalid_raw_net() -> None:
+    # NetworkXIO validates the semantic net before export.
+    # This protects imported, deserialized, or manually modified nets.
+    net = KuripotNet(net_id="demo_net")
+
+    archive = KuripotArchive(archive_id="state_archive")
+    operator = KuripotOperator(operator_id="missing_operator")
+    token = KuripotToken(token_id="state_0")
+
+    net.add_archive(archive)
+
+    # Deliberately bypass the public add_input_arc() method to simulate a
+    # malformed raw/imported net.
+    net.input_arcs.append(
+        (
+            archive.archive_id,
+            operator.operator_id,
+            token,
+        )
+    )
+
+    with pytest.raises(ValueError, match="unknown operator"):
+        NetworkXIO().export(net)

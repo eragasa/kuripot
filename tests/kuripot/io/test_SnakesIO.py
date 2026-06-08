@@ -1,8 +1,7 @@
 # tests/kuripot/io/test_SnakesIO.py
-
 from __future__ import annotations
-
 import pytest
+
 from snakes.nets import PetriNet, Substitution
 
 from kuripot.core.archive import KuripotArchive
@@ -127,3 +126,27 @@ def test__export__creates_executable_transition(
 
     assert state_0 not in snakes_net.place("state_archive").tokens
     assert state_1 in snakes_net.place("updated_state_archive").tokens
+
+def test__export__raises_for_invalid_raw_net(snakes_io: SnakesIO) -> None:
+    # SnakesIO validates the semantic net before export.
+    # This protects imported, deserialized, or manually modified nets.
+    net = KuripotNet(net_id="demo_net")
+
+    archive = KuripotArchive(archive_id="state_archive")
+    operator = KuripotOperator(operator_id="missing_operator")
+    token = KuripotToken(token_id="state_0")
+
+    net.add_archive(archive)
+
+    # Deliberately bypass the public add_input_arc() method to simulate a
+    # malformed raw/imported net.
+    net.input_arcs.append(
+        (
+            archive.archive_id,
+            operator.operator_id,
+            token,
+        )
+    )
+
+    with pytest.raises(ValueError, match="unknown operator"):
+        snakes_io.export(net)

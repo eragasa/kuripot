@@ -37,6 +37,8 @@ class NetworkXIO():
         Export a KuripotNet as a NetworkX DiGraph.
         """
 
+        net.validate()
+
         graph = nx.DiGraph(name=net.net_id)
 
         for archive_id, archive in net.archives.items():

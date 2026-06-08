@@ -25,6 +25,8 @@ class SnakesIO:
         Export a KuripotNet as a SNAKES PetriNet.
         """
 
+        net.validate()
+
         snakes_net = PetriNet(net.net_id)
 
         for archive_id, archive in net.archives.items():
